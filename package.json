@@ -1,0 +1,20 @@
+{
+  "name": "vnu-composer",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @vnu/shared-types && npm run build -w @vnu/exam-package-kit && npm run build -w @vnu/api && npm run build -w @vnu/composer-web",
+    "dev": "concurrently -n API,Web -c blue,cyan \"npm run dev -w @vnu/api\" \"npm run dev -w @vnu/composer-web\"",
+    "dev:api": "npm run dev -w @vnu/api",
+    "dev:web": "npm run dev -w @vnu/composer-web",
+    "test": "npm run test -w @vnu/shared-types && npm run test -w @vnu/exam-package-kit && npm run test -w @vnu/composer-web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.3",
+    "typescript": "^5.7.2"
+  }
+}
