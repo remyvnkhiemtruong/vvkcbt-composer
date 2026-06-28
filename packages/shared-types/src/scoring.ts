@@ -1,4 +1,5 @@
 import type { TrueFalseBranchScoring } from './index';
+import { applyInformaticsBranchScoring } from './informatics-branch';
 
 const DEFAULT_TRUE_FALSE_BRANCH: TrueFalseBranchScoring = {
   '1': 0.1,
@@ -49,6 +50,66 @@ export interface QuestionForScoring {
   type: 'mcq' | 'true_false' | 'short_answer' | 'essay' | 'cluster_mcq';
   correctKey: unknown;
   maxScore?: number;
+  part?: string;
+}
+
+export interface PartScoreInput {
+  id: string;
+  part?: string;
+  type?: string;
+  maxScore?: number;
+}
+
+export interface PartScoreSummary {
+  part1: number;
+  part2: number;
+  part3: number;
+  maxPart1: number;
+  maxPart2: number;
+  maxPart3: number;
+}
+
+function partBucket(part?: string): 1 | 2 | 3 {
+  if (!part) return 1;
+  if (
+    part.includes('part2') ||
+    part === 'part2_true_false' ||
+    part === 'part2_writing'
+  ) {
+    return 2;
+  }
+  if (part.includes('part3') || part === 'part3_short') return 3;
+  return 1;
+}
+
+export function aggregatePartScores(
+  questions: PartScoreInput[],
+  breakdown: Array<{ questionId: string; score: number; maxScore: number }>,
+): PartScoreSummary {
+  const byId = new Map(breakdown.map((b) => [b.questionId, b]));
+  let part1 = 0;
+  let part2 = 0;
+  let part3 = 0;
+  let maxPart1 = 0;
+  let maxPart2 = 0;
+  let maxPart3 = 0;
+  for (const q of questions) {
+    const b = byId.get(q.id);
+    const score = b?.score ?? 0;
+    const max = b?.maxScore ?? q.maxScore ?? 0;
+    const bucket = partBucket(q.part);
+    if (bucket === 1) {
+      part1 += score;
+      maxPart1 += max;
+    } else if (bucket === 2) {
+      part2 += score;
+      maxPart2 += max;
+    } else {
+      part3 += score;
+      maxPart3 += max;
+    }
+  }
+  return { part1, part2, part3, maxPart1, maxPart2, maxPart3 };
 }
 
 export function scoreAnswer(
@@ -64,8 +125,8 @@ export function scoreAnswer(
       return { score, maxScore, flagged: false };
     }
     case 'true_false': {
-      const selected = answer as boolean[];
-      const correct = question.correctKey as boolean[];
+      const selected = Array.isArray(answer) ? (answer as boolean[]) : [];
+      const correct = Array.isArray(question.correctKey) ? (question.correctKey as boolean[]) : [];
       const score = scoreTrueFalse(selected, correct, rules?.true_false_branch);
       return { score, maxScore, flagged: false };
     }
@@ -87,4 +148,48 @@ export function scoreAnswer(
     default:
       return { score: 0, maxScore, flagged: true };
   }
+}
+
+export interface ExamScoreBreakdownItem {
+  questionId: string;
+  type: QuestionForScoring['type'];
+  score: number;
+  maxScore: number;
+  flagged: boolean;
+}
+
+export function scoreExamPaper(
+  questions: QuestionForScoring[],
+  answers: Record<string, unknown>,
+  rules?: { true_false_branch?: TrueFalseBranchScoring; short_answer_normalize?: Array<'comma_to_dot' | 'trim_whitespace'> },
+  options?: { subjectCode?: string },
+): {
+  total: number;
+  breakdown: ExamScoreBreakdownItem[];
+  informaticsBranchInvalid?: boolean;
+} {
+  let breakdown: ExamScoreBreakdownItem[] = questions.map((q) => {
+    const result = scoreAnswer(q, answers[q.id], rules);
+    return {
+      questionId: q.id,
+      type: q.type,
+      score: result.score,
+      maxScore: result.maxScore,
+      flagged: result.flagged,
+    };
+  });
+
+  let informaticsBranchInvalid = false;
+  if (options?.subjectCode === 'INFORMATICS') {
+    const adjusted = applyInformaticsBranchScoring(
+      questions,
+      breakdown as Array<{ questionId: string; score: number; maxScore: number }>,
+      answers,
+    );
+    breakdown = adjusted.breakdown as ExamScoreBreakdownItem[];
+    informaticsBranchInvalid = adjusted.branchInvalid;
+  }
+
+  const total = breakdown.reduce((sum, b) => sum + b.score, 0);
+  return { total, breakdown, informaticsBranchInvalid: informaticsBranchInvalid || undefined };
 }

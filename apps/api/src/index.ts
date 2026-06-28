@@ -10,6 +10,11 @@ import { coreRouter } from './routes/core';
 
 config({ path: resolve(__dirname, '../../../.env') });
 
+const ALLOWED_ORIGINS = (process.env.COMPOSER_ALLOWED_ORIGINS || 'http://localhost:5176')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const app = express();
 const port = Number(process.env.PORT || 3100);
 const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
@@ -18,7 +23,15 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
+      else cb(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: '25mb' }));
 app.use('/uploads', express.static(uploadDir));
 app.use('/api/uploads', express.static(uploadDir));

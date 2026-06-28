@@ -1,3 +1,5 @@
+import type { PartScoreSummary } from './scoring';
+
 export enum ExamType {
   TN_THPT_2025 = 'TN_THPT_2025',
   GDPT_2018 = 'GDPT_2018',
@@ -45,9 +47,13 @@ export enum AuditEventType {
   FOCUS_VIOLATION = 'focus_violation',
   AUTOSAVE = 'autosave',
   SUBMIT = 'submit',
+  EXAM_START = 'exam_start',
   PROCTOR_ACTION = 'proctor_action',
+  SCORE_OVERRIDE = 'score_override',
   FULLSCREEN_EXIT = 'fullscreen_exit',
   HELP_REQUEST = 'help_request',
+  APPEAL_CREATED = 'appeal_created',
+  APPEAL_REVIEWED = 'appeal_reviewed',
 }
 
 export interface TrueFalseBranchScoring {
@@ -109,15 +115,39 @@ export interface ScoreBreakdownItem {
 export interface SubmitResult {
   total: number;
   breakdown: ScoreBreakdownItem[];
+  partScores?: PartScoreSummary;
+  subject?: string;
+  hasMoreSlots?: boolean;
+  serverNow?: string;
+  endsAt?: string;
+  sbd?: string;
+  examAccount?: string;
 }
 
+/** Tên trường mặc định — đồng bộ UI, biên bản, seed, Composer. */
+export const DEFAULT_SCHOOL_NAME = 'THPT Võ Văn Kiệt';
+export const DEFAULT_SCHOOL_CODE = 'VVK001';
+
 export * from './scoring';
+export * from './short-answer';
+export * from './informatics-branch';
 export * from './routing';
 export * from './exam-structure';
 export * from './tn-thpt-catalog';
+export { TN_THPT_SUBJECTS, listTnThptSubjects, getSubjectMeta } from './tn-thpt-catalog';
 export * from './exam-package';
+export * from './question-content';
 export * from './blueprint-validator';
 export {
   BLUEPRINT_FIXTURES,
   buildValidEnglishClusters,
 } from './__fixtures__/blueprint-fixtures';
+export {
+  seededShuffle,
+  resolveQuestionPartKey,
+  enrichQuestionsWithPart,
+  orderQuestionsByPart,
+  orderEnglishClusterQuestions,
+  orderQuestionsForExam,
+} from './question-order';
+export type { EnglishClusterOrderQuestion } from './question-order';

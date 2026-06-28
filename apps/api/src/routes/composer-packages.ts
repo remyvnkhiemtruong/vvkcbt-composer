@@ -14,6 +14,13 @@ export const composerPackagesRouter = Router();
 
 composerPackagesRouter.use(requireComposerAuth);
 
+function parseExportState(body: unknown): ExamPackageExportState | null {
+  if (!body || typeof body !== 'object') return null;
+  const state = body as ExamPackageExportState;
+  if (!state.manifest || !state.session) return null;
+  return state;
+}
+
 composerPackagesRouter.get('/template', async (_req: Request, res: Response) => {
   try {
     const buffer = await buildTemplateZip();
@@ -26,13 +33,22 @@ composerPackagesRouter.get('/template', async (_req: Request, res: Response) => 
 });
 
 composerPackagesRouter.post('/validate', (req: Request, res: Response) => {
+  const state = parseExportState(req.body);
+  if (!state) {
+    res.status(400).json({ message: 'Body không hợp lệ: thiếu manifest hoặc session' });
+    return;
+  }
   const body = req.body as ExportBySubjectBody;
-  const { subjectCode, ...state } = body;
-  res.json(validateExportState(state as ExamPackageExportState, subjectCode ? { subjectCode } : undefined));
+  const { subjectCode } = body;
+  res.json(validateExportState(state, subjectCode ? { subjectCode } : undefined));
 });
 
 composerPackagesRouter.post('/export', async (req: Request, res: Response) => {
-  const state = req.body as ExamPackageExportState;
+  const state = parseExportState(req.body);
+  if (!state) {
+    res.status(400).json({ message: 'Body không hợp lệ: thiếu manifest hoặc session' });
+    return;
+  }
   const validation = validateExportState(state);
   if (!validation.valid) {
     res.status(400).json({ message: validation.errors.join('; '), ...validation });
@@ -51,8 +67,13 @@ composerPackagesRouter.post('/export', async (req: Request, res: Response) => {
 type ExportBySubjectBody = ExamPackageExportState & { subjectCode?: string };
 
 composerPackagesRouter.post('/export-by-subject', async (req: Request, res: Response) => {
+  const parsed = parseExportState(req.body);
+  if (!parsed) {
+    res.status(400).json({ message: 'Body không hợp lệ: thiếu manifest hoặc session' });
+    return;
+  }
   const { subjectCode, ...rest } = req.body as ExportBySubjectBody;
-  const state = rest as ExamPackageExportState;
+  const state = { ...rest, manifest: parsed.manifest, session: parsed.session } as ExamPackageExportState;
 
   try {
     if (subjectCode) {

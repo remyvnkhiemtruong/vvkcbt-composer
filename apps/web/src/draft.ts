@@ -25,7 +25,8 @@ export type TnThptSubjectCode =
   | 'GEOGRAPHY'
   | 'HISTORY'
   | 'CIVIC_EDU'
-  | 'TECHNOLOGY'
+  | 'TECH_INDUSTRY'
+  | 'TECH_AGRICULTURE'
   | 'INFORMATICS';
 
 export interface SealedExportRecord {

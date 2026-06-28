@@ -89,7 +89,7 @@ export type SubjectStructureGroup =
   | 'english_cluster';
 
 const SCIENCE_SUBJECTS = new Set(['PHYSICS', 'CHEMISTRY', 'BIOLOGY', 'GEOGRAPHY']);
-const SOCIAL_SUBJECTS = new Set(['HISTORY', 'CIVIC_EDU', 'TECHNOLOGY']);
+const SOCIAL_SUBJECTS = new Set(['HISTORY', 'CIVIC_EDU', 'TECH_INDUSTRY', 'TECH_AGRICULTURE', 'TECHNOLOGY']);
 
 export function getComposeMode(subject: string): ComposerComposeMode {
   if (subject === 'ENGLISH') return 'english';

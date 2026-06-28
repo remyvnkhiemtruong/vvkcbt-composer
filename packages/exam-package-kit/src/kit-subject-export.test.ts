@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
   dryRunZip,
   exportAllSubjectsFromState,
+  exportSubjectFromState,
+  buildSubjectZipFilename,
   sliceStateForSubject,
   validateExportState,
 } from './kit';
@@ -10,7 +12,7 @@ import type { ExamPackageExportState } from '@vnu/shared-types';
 import { BLUEPRINT_FIXTURES } from '@vnu/shared-types';
 
 describe('per-subject ZIP export', () => {
-  it('sliceStateForSubject keeps packageId and scopes one subject', async () => {
+  it('sliceStateForSubject assigns new packageId per export', async () => {
     const state: ExamPackageExportState = {
       manifest: {
         formatVersion: '1.2',
@@ -69,7 +71,8 @@ describe('per-subject ZIP export', () => {
     };
 
     const sliced = sliceStateForSubject(state, 'MATH');
-    assert.equal(sliced.manifest.packageId, 'test-pkg-001');
+    assert.notEqual(sliced.manifest.packageId, 'test-pkg-001');
+    assert.match(sliced.manifest.packageId, /^[0-9a-f-]{36}$/i);
     assert.equal(sliced.manifest.exportScope, 'single_subject');
     assert.equal(sliced.manifest.subjectCode, 'MATH');
     assert.equal(sliced.subjects.length, 1);
@@ -81,8 +84,13 @@ describe('per-subject ZIP export', () => {
     const files = await exportAllSubjectsFromState(state);
     assert.equal(files.length, 1);
     assert.equal(files[0].subjectCode, 'MATH');
+    assert.match(files[0].filename, /exam-.+-MATH-20260626-0730\.zip/);
 
     const drySubject = await dryRunZip(files[0].buffer);
-    assert.equal(drySubject.passed, true);
+    assert.equal(
+      drySubject.passed,
+      true,
+      drySubject.checklist.map((c) => `${c.ok ? '✓' : '✗'} ${c.item}${c.detail ? `: ${c.detail}` : ''}`).join('; '),
+    );
   });
 });

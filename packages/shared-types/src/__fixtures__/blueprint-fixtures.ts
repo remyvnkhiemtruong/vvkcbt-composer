@@ -44,28 +44,9 @@ function short(id: string, subject: string, part: string, score: number) {
   };
 }
 
-function essay(id: string, part: string, score: number) {
-  return {
-    id,
-    subject: 'LITERATURE',
-    type: 'essay',
-    part,
-    difficulty: 'medium',
-    content: { stem: `Đề ${part}` },
-    correctKey: null,
-    maxScore: score,
-  };
-}
-
 function buildStandardPaper(subject: TnThptSubjectCode): ExamPackagePaperRow {
   const structure = getDefaultStructure(subject)!;
   const questions: Record<string, unknown>[] = [];
-
-  if (subject === 'LITERATURE') {
-    questions.push(essay('lit-1', 'part1_reading', 4));
-    questions.push(essay('lit-2', 'part2_writing', 6));
-    return { title: 'Văn', subject, questions };
-  }
 
   if (subject === 'ENGLISH') {
     const clusters: ExamPackageClusterRow[] = [];
@@ -111,11 +92,7 @@ function buildStandardPaper(subject: TnThptSubjectCode): ExamPackagePaperRow {
       if (partCfg.type === 'mcq') {
         questions.push(mcq(id, subject, partKey, partCfg.score_per_item ?? 0.25));
       } else if (partCfg.type === 'true_false') {
-        let tfScore = 1;
-        if (subject === 'INFORMATICS') {
-          tfScore = 4 / 6;
-        }
-        questions.push(tf(id, subject, partKey, tfScore));
+        questions.push(tf(id, subject, partKey, 1));
       } else if (partCfg.type === 'short_answer') {
         questions.push(short(id, subject, partKey, partCfg.score_per_item ?? 0.25));
       }
@@ -132,7 +109,6 @@ export function buildValidEnglishClusters(): ExamPackageClusterRow[] {
 }
 
 export const BLUEPRINT_FIXTURES: Record<TnThptSubjectCode, ExamPackagePaperRow> = {
-  LITERATURE: buildStandardPaper('LITERATURE'),
   MATH: buildStandardPaper('MATH'),
   ENGLISH: buildStandardPaper('ENGLISH'),
   PHYSICS: buildStandardPaper('PHYSICS'),
@@ -141,6 +117,7 @@ export const BLUEPRINT_FIXTURES: Record<TnThptSubjectCode, ExamPackagePaperRow> 
   GEOGRAPHY: buildStandardPaper('GEOGRAPHY'),
   HISTORY: buildStandardPaper('HISTORY'),
   CIVIC_EDU: buildStandardPaper('CIVIC_EDU'),
-  TECHNOLOGY: buildStandardPaper('TECHNOLOGY'),
+  TECH_INDUSTRY: buildStandardPaper('TECH_INDUSTRY'),
+  TECH_AGRICULTURE: buildStandardPaper('TECH_AGRICULTURE'),
   INFORMATICS: buildStandardPaper('INFORMATICS'),
 };

@@ -93,6 +93,42 @@ function resolveSheet(wb: XLSX.WorkBook): XLSX.WorkSheet {
   return wb.Sheets[preferred ?? wb.SheetNames[0]];
 }
 
+/** Xác định đúng một môn có cột X trong file Excel (import theo môn). */
+export function detectImportSubject(buffer: ArrayBuffer): string {
+  const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+  const sheet = resolveSheet(wb);
+  const matrix = XLSX.utils.sheet_to_json<(string | number)[]>(sheet, {
+    header: 1,
+    defval: '',
+    raw: false,
+  }) as (string | number)[][];
+  if (!matrix.length) {
+    throw new Error('Mỗi file Excel chỉ dùng cho một môn — file trống');
+  }
+  const headerRow = matrix[0].map((c) => String(c ?? '').trim());
+  const subjectCols = new Map<string, string>();
+  headerRow.forEach((h) => {
+    if (!h) return;
+    const subjectCode = SUBJECT_BY_HEADER.get(h) ?? SUBJECT_BY_HEADER.get(h.trim());
+    if (subjectCode) subjectCols.set(h, subjectCode);
+  });
+  const marked = new Set<string>();
+  for (let r = 1; r < matrix.length; r++) {
+    const cells = matrix[r];
+    headerRow.forEach((h, idx) => {
+      const code = subjectCols.get(h);
+      if (code && isMarkedX(String(cells[idx] ?? ''))) marked.add(code);
+    });
+  }
+  if (marked.size === 0) {
+    throw new Error('Mỗi file Excel chỉ dùng cho một môn — không có cột môn nào được đánh dấu X');
+  }
+  if (marked.size > 1) {
+    throw new Error('Mỗi file Excel chỉ dùng cho một môn — phát hiện nhiều hơn một môn có X');
+  }
+  return [...marked][0];
+}
+
 export function parseStudentsExcel(buffer: ArrayBuffer): ExamPackageStudentRow[] {
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
   const sheet = resolveSheet(wb);

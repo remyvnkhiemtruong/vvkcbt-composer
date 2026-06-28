@@ -17,7 +17,11 @@ declare global {
 }
 
 function jwtSecret(): string {
-  return process.env.JWT_SECRET || 'dev-composer-secret-change-me';
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error('JWT_SECRET phải được đặt trong .env và dài ít nhất 32 ký tự');
+  }
+  return secret;
 }
 
 export function signComposerToken(username: string): string {

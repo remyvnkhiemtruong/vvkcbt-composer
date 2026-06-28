@@ -3,7 +3,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/BeVietnamPro-Regular.woff2') format('woff2');
+  src: url('../../assets/fonts/BeVietnamPro-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -11,7 +11,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/BeVietnamPro-SemiBold.woff2') format('woff2');
+  src: url('../../assets/fonts/BeVietnamPro-SemiBold.woff2') format('woff2');
 }
 
 @font-face {
@@ -19,15 +19,15 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/BeVietnamPro-Bold.woff2') format('woff2');
+  src: url('../../assets/fonts/BeVietnamPro-Bold.woff2') format('woff2');
 }
 
 :root {
-  --cbt-navy: #0f172a;
-  --cbt-navy-light: #1a237e;
-  --cbt-primary: #2563eb;
-  --cbt-primary-hover: #1d4ed8;
-  --cbt-bg: #f0f2f5;
+  --cbt-navy: #0c1f3d;
+  --cbt-navy-light: #1d5baa;
+  --cbt-primary: #1d5baa;
+  --cbt-primary-hover: #164a8f;
+  --cbt-bg: #eef4f9;
   --cbt-surface: #ffffff;
   --cbt-border: #e2e8f0;
   --cbt-text: #1e293b;
@@ -49,5 +49,5 @@
   --cbt-radius: 12px;
   --cbt-radius-sm: 8px;
   --cbt-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
-  --cbt-font: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+  --cbt-font: 'Be Vietnam Pro', 'Segoe UI', 'Noto Sans', system-ui, sans-serif;
 }

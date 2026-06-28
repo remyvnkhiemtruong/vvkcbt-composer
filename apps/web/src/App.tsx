@@ -239,6 +239,62 @@ export default function App() {
                 </select>
               </div>
               <div className="composer-row">
+                <label>Địa danh (biên bản)</label>
+                <input
+                  className="cbt-input"
+                  value={draft.manifest.branding?.placeName ?? ''}
+                  placeholder="Cà Mau"
+                  onChange={(e) =>
+                    patch((d) => {
+                      if (!d.manifest.branding) d.manifest.branding = {};
+                      d.manifest.branding.placeName = e.target.value;
+                    })
+                  }
+                />
+              </div>
+              <div className="composer-row">
+                <label>Ban coi thi (biên bản)</label>
+                <input
+                  className="cbt-input"
+                  value={draft.manifest.branding?.examBoardName ?? ''}
+                  placeholder="Ban coi thi kỳ thi THPT"
+                  onChange={(e) =>
+                    patch((d) => {
+                      if (!d.manifest.branding) d.manifest.branding = {};
+                      d.manifest.branding.examBoardName = e.target.value;
+                    })
+                  }
+                />
+              </div>
+              <div className="composer-row">
+                <label>Nhãn phòng thi (Tin học)</label>
+                <input
+                  className="cbt-input"
+                  value={draft.session.labRoomLabel ?? ''}
+                  placeholder="Phòng máy 01"
+                  onChange={(e) =>
+                    patch((d) => {
+                      d.session.labRoomLabel = e.target.value || undefined;
+                    })
+                  }
+                />
+              </div>
+              <div className="composer-row">
+                <label>Sức chứa mỗi phòng (mặc định 30)</label>
+                <input
+                  className="cbt-input"
+                  type="number"
+                  min={1}
+                  value={draft.session.labRoomCapacity ?? 30}
+                  onChange={(e) =>
+                    patch((d) => {
+                      const n = Number(e.target.value);
+                      d.session.labRoomCapacity = Number.isFinite(n) && n > 0 ? n : undefined;
+                    })
+                  }
+                />
+              </div>
+              <div className="composer-row">
                 <label>Sở GDĐT</label>
                 <input
                   className="cbt-input"

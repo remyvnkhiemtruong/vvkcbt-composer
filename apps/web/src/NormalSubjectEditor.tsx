@@ -17,7 +17,7 @@ import { defaultMaxScore } from './questionFormUtils';
 
 const NORMAL_SUBJECTS = [
   'MATH', 'PHYSICS', 'CHEMISTRY', 'BIOLOGY', 'GEOGRAPHY',
-  'HISTORY', 'CIVIC_EDU', 'TECHNOLOGY', 'INFORMATICS',
+  'HISTORY', 'CIVIC_EDU', 'TECH_INDUSTRY', 'TECH_AGRICULTURE', 'INFORMATICS',
 ] as const;
 
 export function NormalSubjectEditor({
@@ -42,6 +42,7 @@ export function NormalSubjectEditor({
   const [tfCorrect, setTfCorrect] = useState([true, false, true, false]);
   const [correctKey, setCorrectKey] = useState('A');
   const [orientation, setOrientation] = useState('');
+  const [informaticsSlot, setInformaticsSlot] = useState<number | ''>('');
   const [editId, setEditId] = useState<string | null>(null);
   const [wordModalOpen, setWordModalOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -62,6 +63,7 @@ export function NormalSubjectEditor({
     setTfCorrect([true, false, true, false]);
     setCorrectKey('A');
     setOrientation('');
+    setInformaticsSlot('');
   };
 
   const buildQuestion = (): ExamPackageQuestionRow => {
@@ -84,6 +86,11 @@ export function NormalSubjectEditor({
       content,
       correctKey: key,
       maxScore,
+      ...(subject === 'INFORMATICS' &&
+      activePart === 'part2_true_false' &&
+      informaticsSlot !== ''
+        ? { informaticsSlot: Number(informaticsSlot) }
+        : {}),
     } as ExamPackageQuestionRow & { part?: string };
   };
 
@@ -110,6 +117,11 @@ export function NormalSubjectEditor({
       setCorrectKey(String(q.correctKey ?? 'A'));
     }
     setOrientation(String((q.content as { orientation?: string })?.orientation ?? ''));
+    setInformaticsSlot(
+      subject === 'INFORMATICS' && (q as ExamPackageQuestionRow).informaticsSlot != null
+        ? (q as ExamPackageQuestionRow).informaticsSlot!
+        : '',
+    );
   };
 
   const uploadFile = async (file: File, kind: 'image' | 'audio') => {
@@ -210,6 +222,23 @@ export function NormalSubjectEditor({
         {type === 'true_false' && (
           <>
             <textarea className="cbt-textarea" rows={2} value={stem} onChange={(e) => setStem(e.target.value)} placeholder="Bối cảnh / câu dẫn (tùy chọn)" />
+            {subject === 'INFORMATICS' && activePart === 'part2_true_false' && (
+              <label className="composer-row" style={{ marginBottom: '0.5rem' }}>
+                Slot Phần II (1–6)
+                <select
+                  className="cbt-select"
+                  value={informaticsSlot === '' ? '' : String(informaticsSlot)}
+                  onChange={(e) => setInformaticsSlot(e.target.value ? Number(e.target.value) : '')}
+                >
+                  <option value="">— Chọn slot —</option>
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <option key={n} value={n}>
+                      Slot {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             {subject === 'INFORMATICS' && (
               <input className="cbt-input" value={orientation} onChange={(e) => setOrientation(e.target.value)}
                 placeholder="Định hướng: chung / KHMT / THUD (tùy chọn)" style={{ marginBottom: '0.5rem' }} />
